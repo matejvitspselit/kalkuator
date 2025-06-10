@@ -2,13 +2,29 @@ const inputDisplay = document.getElementById("calculator-input");
 const outputDisplay = document.getElementById("calculator-output");
 const historyDisplay = document.getElementById("history-display");
 
+// Explicitly select the C and CE buttons
+const clearButton = document.getElementById("clear-btn");        // C button
+const clearEverythingButton = document.getElementById("clear-all-btn"); // CE button
+
 let currentInput = "";
 let lastResult = null;
 
-// Handle button clicks
-document.querySelectorAll(".calculator-buttons button").forEach(button =>
-  button.addEventListener("click", () => handleInput(button.value))
-);
+// Handle all other buttons except C and CE
+document.querySelectorAll(".calculator-buttons button").forEach(button => {
+  // Skip C and CE buttons here to avoid double binding
+  if (button === clearButton || button === clearEverythingButton) return;
+  button.addEventListener("click", () => handleInput(button.value));
+});
+
+// Add event listener for clear (C) button
+clearButton.addEventListener("click", () => {
+  handleInput("C");
+});
+
+// Add event listener for clear everything (CE) button
+clearEverythingButton.addEventListener("click", () => {
+  handleInput("CE");
+});
 
 // Handle keyboard input
 document.addEventListener("keydown", ({ key }) => {
@@ -21,19 +37,28 @@ function handleInput(value) {
   switch (value) {
     case "=":
       return calculate();
+
     case "C":
+      // Remove last character
       currentInput = currentInput.slice(0, -1);
       break;
+
     case "CE":
+      // Clear all input and output, reset lastResult
       currentInput = "";
+      lastResult = null;
       outputDisplay.textContent = "0";
       break;
+
     default:
       const isOperator = ["+", "-", "*", "/", "^"].includes(value);
-      currentInput += isOperator && !currentInput && lastResult !== null
-        ? lastResult + value
-        : value;
+      if (isOperator && !currentInput && lastResult !== null) {
+        currentInput = lastResult.toString() + value;
+      } else {
+        currentInput += value;
+      }
   }
+
   inputDisplay.textContent = currentInput || "0";
 }
 
